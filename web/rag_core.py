@@ -111,13 +111,23 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     return retriever_description, retriever_matches
 
 
-def get_llm(model_name: str = "mistral:instruct") -> OllamaLLM:
+def get_llm(model_name: str = "mistral:instruct"):
+    # Cloud: usa API oficial da Mistral se MISTRAL_API_KEY existir
+    if os.getenv("MISTRAL_API_KEY"):
+        from langchain_mistralai import ChatMistralAI
+        mistral_model = os.getenv("MISTRAL_MODEL", "mistral-small-latest")
+        return ChatMistralAI(model=mistral_model)
+
+    # Local/dev: tenta Ollama
     try:
-        ollama.pull(model_name)
-    except Exception:
-        # Ignorar falhas de pull (pode já existir ou estar offline)
-        pass
-    return OllamaLLM(model=model_name)
+        _ = ollama.list()
+        try:
+            ollama.pull(model_name)
+        except Exception:
+            pass
+        return OllamaLLM(model=model_name)
+    except Exception as e:
+        raise RuntimeError("Nenhum provedor LLM disponível. Defina MISTRAL_API_KEY no Cloud ou rode Ollama localmente.") from e
 
 
 def formatar_resposta(texto: str) -> str:
