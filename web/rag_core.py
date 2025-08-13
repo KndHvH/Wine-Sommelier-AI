@@ -9,11 +9,6 @@ import streamlit as st
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-# OCR deps
-import pdf2image
-import pytesseract
 
 # LLM (Ollama)
 from langchain_ollama import OllamaLLM
@@ -22,35 +17,13 @@ import ollama
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "data"
-DEFAULT_TESSERACT = REPO_ROOT / "Tesseract-OCR" / "tesseract.exe"
-DEFAULT_POPPLER_BIN = REPO_ROOT / "poppler" / "poppler-24.08.0" / "Library" / "bin"
+FAISS_DIR = REPO_ROOT / "faiss"
 
 
-def _resolve_tesseract_path() -> Optional[str]:
-    if DEFAULT_TESSERACT.exists():
-        return str(DEFAULT_TESSERACT)
+def _find_index_dir(preferred: Path) -> Optional[Path]:
+    if (preferred / "index.faiss").exists() and (preferred / "index.pkl").exists():
+        return preferred
     return None
-
-
-def _resolve_poppler_path() -> Optional[str]:
-    if DEFAULT_POPPLER_BIN.exists():
-        return str(DEFAULT_POPPLER_BIN)
-    return None
-
-
-def _configure_ocr_binaries() -> None:
-    tess = _resolve_tesseract_path()
-    if tess:
-        pytesseract.pytesseract.tesseract_cmd = tess
-
-
-def _pdf_to_images(pdf_path: str) -> List[Any]:
-    poppler_path = _resolve_poppler_path()
-    return pdf2image.convert_from_path(pdf_path, poppler_path=poppler_path)
-
-
-def _ocr_image(img) -> str:
-    return pytesseract.image_to_string(img)
 
 
 def _clean_text(text: str) -> str:
@@ -60,68 +33,79 @@ def _clean_text(text: str) -> str:
 
 
 @st.cache_resource(show_spinner=False)
-def load_documents_from_pdfs() -> List[Document]:
-    _configure_ocr_binaries()
-    documents: List[Document] = []
-    for pdf in sorted(DATA_DIR.glob("*.pdf")):
-        try:
-            images = _pdf_to_images(str(pdf))
-        except Exception as e:
-            st.warning(f"Falha ao converter PDF '{pdf.name}': {e}")
-            continue
-        for page_index, img in enumerate(images):
-            try:
-                text = _ocr_image(img)
-            except Exception as e:
-                st.warning(f"Falha no OCR em '{pdf.name}' pág {page_index+1}: {e}")
-                text = ""
-            text = _clean_text(text)
-            if not text:
-                continue
-            documents.append(
-                Document(page_content=text, metadata={"source": str(pdf), "page": page_index + 1})
-            )
-    return documents
+def _load_vectorstore_from_dir(dir_path: Path, _embeddings: HuggingFaceEmbeddings) -> FAISS:
+    return FAISS.load_local(
+        folder_path=str(dir_path),
+        embeddings=_embeddings,
+        allow_dangerous_deserialization=True,
+    )
+
+
+def _clean_text(text: str) -> str:
+    cleaned = text.replace("\x00", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 
 @st.cache_resource(show_spinner=False)
-def load_documents_from_csvs() -> List[Document]:
-    from langchain.document_loaders import CSVLoader
-
-    documents: List[Document] = []
-    for csv in sorted(DATA_DIR.glob("*.csv")):
-        try:
-            loader = CSVLoader(str(csv), encoding="utf-8")
-            docs = loader.load()
-            documents.extend(docs)
-        except Exception as e:
-            st.warning(f"Falha ao ler CSV '{csv.name}': {e}")
-    return documents
-
-
-def _split_documents(documents: List[Document], chunk_size: int, chunk_overlap: int) -> List[Document]:
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    return splitter.split_documents(documents)
-
-
-@st.cache_resource(show_spinner=False)
-def build_vectorstores() -> Tuple[FAISS, FAISS]:
-    pdf_docs = load_documents_from_pdfs()
-    csv_docs = load_documents_from_csvs()
-
-    docs_description = _split_documents(pdf_docs, chunk_size=1000, chunk_overlap=200)
-    docs_matches = _split_documents(csv_docs, chunk_size=5000, chunk_overlap=200)
-
+def load_vectorstores() -> Tuple[FAISS, FAISS]:
     embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-base")
 
-    db_description = FAISS.from_documents(docs_description, embeddings)
-    db_matches = FAISS.from_documents(docs_matches, embeddings)
+    # Tenta diferentes layouts de pastas
+    candidates_desc = [
+        FAISS_DIR / "description",
+        REPO_ROOT / "faiss_description",
+        REPO_ROOT / "faiss_desc",
+    ]
+    candidates_match = [
+        FAISS_DIR / "matches",
+        REPO_ROOT / "faiss_matches",
+        REPO_ROOT / "faiss_match",
+    ]
+
+    desc_dir = next((p for p in candidates_desc if _find_index_dir(p)), None)
+    match_dir = next((p for p in candidates_match if _find_index_dir(p)), None)
+
+    if not desc_dir or not match_dir:
+        raise FileNotFoundError(
+            "Índices FAISS não encontrados. Esperado em 'faiss/description' e 'faiss/matches' (ou variantes)."
+        )
+
+    db_description = _load_vectorstore_from_dir(desc_dir, embeddings)
+    db_matches = _load_vectorstore_from_dir(match_dir, embeddings)
 
     return db_description, db_matches
 
 
+def get_index_paths() -> Tuple[Optional[Path], Optional[Path]]:
+    candidates_desc = [
+        FAISS_DIR / "description",
+        REPO_ROOT / "faiss_description",
+        REPO_ROOT / "faiss_desc",
+    ]
+    candidates_match = [
+        FAISS_DIR / "matches",
+        REPO_ROOT / "faiss_matches",
+        REPO_ROOT / "faiss_match",
+    ]
+    desc_dir = next((p for p in candidates_desc if (p / "index.faiss").exists()), None)
+    match_dir = next((p for p in candidates_match if (p / "index.faiss").exists()), None)
+    return desc_dir, match_dir
+
+
+def get_vectorstore_stats() -> Dict[str, Any]:
+    stats: Dict[str, Any] = {}
+    try:
+        db_desc, db_match = load_vectorstores()
+        stats["description_vectors"] = getattr(db_desc.index, "ntotal", None)
+        stats["matches_vectors"] = getattr(db_match.index, "ntotal", None)
+    except Exception as e:
+        stats["error"] = str(e)
+    return stats
+
+
 def get_retrievers(k_description: int = 3, k_matches: int = 3):
-    db_description, db_matches = build_vectorstores()
+    db_description, db_matches = load_vectorstores()
     retriever_description = db_description.as_retriever(search_kwargs={"k": k_description})
     retriever_matches = db_matches.as_retriever(search_kwargs={"k": k_matches})
     return retriever_description, retriever_matches
