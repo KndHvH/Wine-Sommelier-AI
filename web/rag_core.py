@@ -11,7 +11,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 # LLM (Ollama)
-from langchain_mistralai import ChatMistralAI
+# Import adiado para dentro de get_llm para evitar ModuleNotFoundError no load
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -110,10 +110,11 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     return retriever_description, retriever_matches
 
 
-def get_llm(model_name: str = "mistral-small-latest") -> ChatMistralAI | None:
+def get_llm(model_name: str = "mistral-small-latest"):
     # Requer MISTRAL_API_KEY no ambiente/Secrets do Streamlit Cloud
     if not os.getenv("MISTRAL_API_KEY"):
         return None
+    from langchain_mistralai import ChatMistralAI
     mistral_model = model_name if ":" not in model_name else "mistral-small-latest"
     return ChatMistralAI(model=mistral_model)
 
