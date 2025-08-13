@@ -1,0 +1,25 @@
+[project]
+name = "vinho"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bitsandbytes>=0.46.1",
+    "faiss-cpu>=1.11.0.post1",
+    "ftfy>=6.3.1",
+    "ipykernel>=6.30.1",
+    "langchain>=0.3.27",
+    "langchain-community>=0.3.27",
+    "langchain-huggingface>=0.3.1",
+    "langchain-ollama>=0.3.6",
+    "ollama>=0.5.3",
+    "pdf2image>=1.17.0",
+    "pdfplumber>=0.11.7",
+    "pymupdf>=1.26.3",
+    "pypdf>=5.9.0",
+    "pytesseract>=0.3.13",
+    "sentence-transformers>=5.1.0",
+    "streamlit>=1.37.0",
+    "transformers>=4.55.0",
+]
