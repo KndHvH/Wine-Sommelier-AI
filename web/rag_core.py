@@ -11,8 +11,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 # LLM (Ollama)
-from langchain_ollama import OllamaLLM
-import ollama
+from langchain_mistralai import ChatMistralAI
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -111,24 +110,12 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     return retriever_description, retriever_matches
 
 
-def get_llm(model_name: str = "mistral-small-latest"):
-    # Cloud: usa API oficial da Mistral se MISTRAL_API_KEY existir
-    if os.getenv("MISTRAL_API_KEY"):
-        from langchain_mistralai import ChatMistralAI
-        # Se o nome do modelo parecer de Ollama (contém ":"), padroniza para um modelo Mistral
-        mistral_model = model_name if ":" not in model_name else "mistral-small-latest"
-        return ChatMistralAI(model=mistral_model)
-
-    # Local/dev: tenta Ollama
-    try:
-        _ = ollama.list()
-        try:
-            ollama.pull(model_name)
-        except Exception:
-            pass
-        return OllamaLLM(model=model_name)
-    except Exception as e:
-        raise RuntimeError("Nenhum provedor LLM disponível. Defina MISTRAL_API_KEY no Cloud ou rode Ollama localmente.") from e
+def get_llm(model_name: str = "mistral-small-latest") -> ChatMistralAI | None:
+    # Requer MISTRAL_API_KEY no ambiente/Secrets do Streamlit Cloud
+    if not os.getenv("MISTRAL_API_KEY"):
+        return None
+    mistral_model = model_name if ":" not in model_name else "mistral-small-latest"
+    return ChatMistralAI(model=mistral_model)
 
 
 def formatar_resposta(texto: str) -> str:

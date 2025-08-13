@@ -19,8 +19,8 @@ st.caption("RAG usando índices FAISS pré-gerados (descrição e matches)")
 
 with st.sidebar:
     st.subheader("Configurações")
-    model_name = st.text_input("Modelo (Mistral API ou Ollama)", value="mistral-small-latest")
-    mistral_api_key = st.text_input("MISTRAL_API_KEY", value="", type="password")
+    model_name = st.text_input("Modelo (Mistral API)", value="mistral-small-latest")
+    mistral_api_key = st.text_input("MISTRAL_API_KEY (obrigatório no Cloud)", value="", type="password")
     k_desc = st.number_input("Top-K contexto", 1, 10, 3)
     k_match = st.number_input("Top-K produtos", 1, 10, 3)
     debug = st.checkbox(
@@ -40,13 +40,23 @@ pergunta = st.text_input(
 executar = st.button("Executar")
 
 if executar and pergunta.strip():
-    if mistral_api_key:
-        import os as _os
-        _os.environ["MISTRAL_API_KEY"] = mistral_api_key
+    import os as _os
+    # Lê secrets do Streamlit Cloud se existirem
+    secret_key = ""
+    try:
+        secret_key = st.secrets.get("MISTRAL_API_KEY", "")  # type: ignore[attr-defined]
+    except Exception:
+        pass
+    key_to_use = mistral_api_key or secret_key or _os.environ.get("MISTRAL_API_KEY", "")
+    if key_to_use:
+        _os.environ["MISTRAL_API_KEY"] = key_to_use
     retriever_desc, retriever_match = get_retrievers(
         k_description=int(k_desc), k_matches=int(k_match)
     )
     llm = get_llm(model_name=model_name)
+    if llm is None:
+        st.error("Defina MISTRAL_API_KEY nos Secrets do Streamlit Cloud (ou no campo acima) para usar a API da Mistral.")
+        st.stop()
 
     # Etapa 1: descrição (índice description)
     query_1 = pergunta
