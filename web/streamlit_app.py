@@ -19,7 +19,8 @@ st.caption("RAG usando índices FAISS pré-gerados (descrição e matches)")
 
 with st.sidebar:
     st.subheader("Configurações")
-    model_name = st.text_input("Modelo (Ollama)", value="mistral:instruct")
+    model_name = st.text_input("Modelo (Mistral API ou Ollama)", value="mistral-small-latest")
+    mistral_api_key = st.text_input("MISTRAL_API_KEY", value="", type="password")
     k_desc = st.number_input("Top-K contexto", 1, 10, 3)
     k_match = st.number_input("Top-K produtos", 1, 10, 3)
     debug = st.checkbox(
@@ -39,6 +40,9 @@ pergunta = st.text_input(
 executar = st.button("Executar")
 
 if executar and pergunta.strip():
+    if mistral_api_key:
+        import os as _os
+        _os.environ["MISTRAL_API_KEY"] = mistral_api_key
     retriever_desc, retriever_match = get_retrievers(
         k_description=int(k_desc), k_matches=int(k_match)
     )

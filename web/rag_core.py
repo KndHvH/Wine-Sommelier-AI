@@ -111,11 +111,12 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     return retriever_description, retriever_matches
 
 
-def get_llm(model_name: str = "mistral:instruct"):
+def get_llm(model_name: str = "mistral-small-latest"):
     # Cloud: usa API oficial da Mistral se MISTRAL_API_KEY existir
     if os.getenv("MISTRAL_API_KEY"):
         from langchain_mistralai import ChatMistralAI
-        mistral_model = os.getenv("MISTRAL_MODEL", "mistral-small-latest")
+        # Se o nome do modelo parecer de Ollama (contém ":"), padroniza para um modelo Mistral
+        mistral_model = model_name if ":" not in model_name else "mistral-small-latest"
         return ChatMistralAI(model=mistral_model)
 
     # Local/dev: tenta Ollama
