@@ -68,10 +68,7 @@ if executar and pergunta.strip():
     docs_2 = retriever_match.get_relevant_documents(query_2)
     import re as _re
     contexto_2 = ". ".join([_re.sub(r"\b\w+:\s*", "", d.page_content) for d in docs_2])
-    role_2 = (
-        "Você é um sommelier experiente em um restaurante 5 estrelas. Use o contexto com vinhos reais (nome, preço, descrição) "
-        "para recomendar 1 a 3 rótulos ao cliente, explicando por que combinam com o prato e o preço. Seja educado e direto."
-    )
+    role_2 = get_roles()[1]
     prompt_2 = montar_prompt(role_2, contexto_2, pergunta)
     resposta_final = llm.invoke(prompt_2)
 
@@ -86,4 +83,5 @@ if executar and pergunta.strip():
 
     st.subheader("Resposta")
     st.write(formatar_resposta(resposta_final))
+    st.image("https://cdn.dooca.store/158171/products/1bhhzxbegypwghxymez7qewhh4cs8dkdfxbz.jpg?v=1723288848")
 
