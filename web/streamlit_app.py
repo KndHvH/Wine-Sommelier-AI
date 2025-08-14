@@ -12,9 +12,9 @@ from rag_core import (
 )
 
 
-st.set_page_config(page_title="Perguntas", page_icon="❓", layout="wide")
+st.set_page_config(page_title="Wine Sommelier AI", page_icon="🍷", layout="wide")
 
-st.title("❓ Perguntas sobre Vinhos")
+st.title("🍷 Descreva seu prato e descubra o melhor vinho")
 st.caption("RAG usando índices FAISS pré-gerados (descrição e matches)")
 
 with st.sidebar:
@@ -39,25 +39,34 @@ pergunta = st.text_input(
 executar = st.button("Executar")
 
 if executar and pergunta.strip():
+    if debug:
+        st.info("Carregando índices...")
     retriever_desc, retriever_match = get_retrievers(
         k_description=int(k_desc), k_matches=int(k_match)
     )
+    if debug:
+        st.info("Carregando modelo...")
     llm = get_llm(model_name=model_name)
+    
 
     # Etapa 1: descrição (índice description)
     query_1 = pergunta
+    if debug: 
+        st.info("Recuperando documentos...")
     docs_1 = retriever_desc.get_relevant_documents(query_1)
     contexto_1 = ". ".join([d.page_content for d in docs_1])
     role_1 = get_roles()[0]
     prompt_1 = montar_prompt(role_1, contexto_1, pergunta)
+    if debug:
+        st.info("Consultando modelo...")
     resposta_1 = llm.invoke(prompt_1)
 
     if debug:
         with st.expander("Etapa 1 - Documentos recuperados (descrição)", expanded=False):
             for d in docs_1:
                 meta = d.metadata
-                st.markdown(f"- {meta}")
-                st.write(d.page_content[:600] + ("..." if len(d.page_content) > 600 else ""))
+                st.markdown(f"#### {meta}")
+                st.code(d.page_content[:600] + ("..." if len(d.page_content) > 600 else ""))
         with st.expander("Etapa 1 - Prompt (com role)", expanded=False):
             st.code(prompt_1)
         with st.expander("Etapa 1 - Resposta", expanded=False):
@@ -65,23 +74,28 @@ if executar and pergunta.strip():
 
     # Etapa 2: matches (índice matches)
     query_2 = f"query: {resposta_1}"
+    if debug:
+        st.info("Recuperando documentos...")
     docs_2 = retriever_match.get_relevant_documents(query_2)
     import re as _re
     contexto_2 = ". ".join([_re.sub(r"\b\w+:\s*", "", d.page_content) for d in docs_2])
     role_2 = get_roles()[1]
     prompt_2 = montar_prompt(role_2, contexto_2, pergunta)
+    if debug:
+        st.info("Consultando modelo...")
     resposta_final = llm.invoke(prompt_2)
 
     if debug:
         with st.expander("Etapa 2 - Documentos recuperados (matches)", expanded=False):
             for d in docs_2:
                 meta = d.metadata
-                st.markdown(f"- {meta}")
-                st.write(d.page_content[:600] + ("..." if len(d.page_content) > 600 else ""))
+                st.markdown(f"#### {meta}")
+                st.code(d.page_content[:600] + ("..." if len(d.page_content) > 600 else ""))
         with st.expander("Etapa 2 - Prompt (com role)", expanded=False):
             st.code(prompt_2)
 
-    st.subheader("Resposta")
-    st.write(formatar_resposta(resposta_final))
-    st.image("https://cdn.dooca.store/158171/products/1bhhzxbegypwghxymez7qewhh4cs8dkdfxbz.jpg?v=1723288848")
+
+    with st.expander("Resposta", expanded=True):
+        st.write(formatar_resposta(resposta_final))
+    # st.image("https://cdn.dooca.store/158171/products/1bhhzxbegypwghxymez7qewhh4cs8dkdfxbz.jpg?v=1723288848")
 

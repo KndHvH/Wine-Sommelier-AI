@@ -155,6 +155,16 @@ def get_roles():
         "Vinho Verde, fresco e frutado, combina bem com a doçura e acidez da morango, Tipo: Frutas"
         "vinho branco leve, com aromas citrus ou frutados, de corpo médio, para que a saborosa carne do camarão se destaque, Tipo: Frutos do mar"
         "vinho branco leve, aromas discretos e ligeiramente doce, como um Chablis da Borgonha, Tipo: Carne Branca"
+        
+        lembrando que:
+        Carnes Vermelhas –  bovinos (boi, vaca, vitelo), suínos (porco, javali), ovinos (cordeiro, carneiro), caprinos (cabrito, bode), outros mamíferos (cavalo, búfalo, veado, cervo, alce, rena).
+        Carnes Brancas – aves domésticas (frango, peru, galinha caipira), aves aquáticas (pato, ganso, marreco), aves de caça (codorna, faisão, perdiz), 
+        Frutos do Mar – peixes de carne clara (tilápia, bacalhau, linguado, robalo, dourado), crustáceos e moluscos (camarão, lagosta, siri, caranguejo, polvo, lula), coelho.
+        Carnes Intermediárias – peixes de carne escura (atum, salmão, sardinha), pato e ganso (aves com carne mais escura e gordura semelhante à de carnes vermelhas), caça menor (pombo, marreco, faisão escuro).
+        Miúdos e Vísceras –  fígado, coração, rins, língua, baço, pulmão, bucho, tripas, estômago, medula óssea.
+        Massas – macarrão, risoto, lasanha, etc.
+        Frutas – morango, uva, maçã, etc.
+        Vegetarianos – vegetais, legumes, saladas, etc.
     """
     sommelier = """
         Você é um sommelier experiente.
@@ -166,11 +176,6 @@ def get_roles():
         também forneça seu preço em reais
         se receber mais de um vinho, forneça uma recomendação de ate 3 vinhos.
         
-        Carnes Vermelhas –  bovinos (boi, vaca, vitelo), suínos (porco, javali), ovinos (cordeiro, carneiro), caprinos (cabrito, bode), outros mamíferos (cavalo, búfalo, veado, cervo, alce, rena).
-        Carnes Brancas – aves domésticas (frango, peru, galinha caipira), aves aquáticas (pato, ganso, marreco), aves de caça (codorna, faisão, perdiz), 
-        Frutos do Mar – peixes de carne clara (tilápia, bacalhau, linguado, robalo, dourado), crustáceos e moluscos (camarão, lagosta, siri, caranguejo, polvo, lula), coelho.
-        Carnes Intermediárias – peixes de carne escura (atum, salmão, sardinha), pato e ganso (aves com carne mais escura e gordura semelhante à de carnes vermelhas), caça menor (pombo, marreco, faisão escuro).
-        Miúdos e Vísceras –  fígado, coração, rins, língua, baço, pulmão, bucho, tripas, estômago, medula óssea.
     """
     return descritor, sommelier
     
