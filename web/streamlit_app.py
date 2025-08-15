@@ -34,7 +34,7 @@ with st.sidebar:
 
 
 pergunta = st.text_input(
-    "Sua pergunta", placeholder="Ex.: Qual vinho combinar com carne de porco assada?"
+    "Seu prato:", placeholder="Ex.: Qual vinho combinar com carne de porco assada?"
 )
 executar = st.button("Executar")
 
@@ -70,7 +70,7 @@ if executar and pergunta.strip():
             st.code(prompt_1)
         status.write("Consultando LLM...")
     resposta_1 = llm.invoke(prompt_1)
-    resposta_1 = resposta_1[:300]
+    resposta_1 = resposta_1[:200]
 
     if debug:
         with st.expander("Etapa 1 - Resposta", expanded=False):

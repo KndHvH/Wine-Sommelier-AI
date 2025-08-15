@@ -115,9 +115,11 @@ def get_llm(model_name: str = "mistral:instruct") -> OllamaLLM:
     try:
         ollama.pull(model_name)
     except Exception:
-        # Ignorar falhas de pull (pode já existir ou estar offline)
         pass
-    return OllamaLLM(model=model_name)
+    return OllamaLLM(
+        model=model_name,
+        num_gpu=1 
+    )
 
 
 def formatar_resposta(texto: str) -> str:
@@ -154,7 +156,7 @@ def get_roles():
         "Vinho Branco, acididade leve e aromas frutados que harmonizam bem com o sabor cremoso do queijo, Tipo: Queijos"
         "Vinho Verde, fresco e frutado, combina bem com a doçura e acidez da morango, Tipo: Frutas"
         "vinho branco leve, com aromas citrus ou frutados, de corpo médio, para que a saborosa carne do camarão se destaque, Tipo: Frutos do mar"
-        "vinho branco leve, aromas discretos e ligeiramente doce, como um Chablis da Borgonha, Tipo: Carne Branca"
+        "vinho tinto encorpado, aromas amadeirados, para acompanhar carne vermelha, Tipo: Carne Vermelha"
         
         lembrando que:
         Carnes Vermelhas –  bovinos (boi, vaca, vitelo), suínos (porco, javali), ovinos (cordeiro, carneiro), caprinos (cabrito, bode), outros mamíferos (cavalo, búfalo, veado, cervo, alce, rena).
@@ -177,9 +179,9 @@ def get_roles():
         Responda em Markdown:
         <div style="display: flex; align-items: flex-start; margin-bottom: 3px;">
         <img src="url da imagem" 
-            width="150" height="300" style="margin-right: 15px;">
+            width="200" height="250" style="margin-right: 15px;">
         <div>
-            <span>Nome: </span><strong>nome</strong> (R$ preço)<br>
+            <span>Nome: </span><strong></strong> (R$ preço)<br>
             explicação do por que escolheu esse vinho, e como ele orna com o prato
         </div>
         </div>
