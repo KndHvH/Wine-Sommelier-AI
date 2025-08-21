@@ -110,13 +110,16 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     return retriever_description, retriever_matches
 
 
-def get_llm(model_name: str = "mistral-small-latest"):
-    # Requer MISTRAL_API_KEY no ambiente/Secrets do Streamlit Cloud
-    if not os.getenv("MISTRAL_API_KEY"):
-        return None
-    from langchain_mistralai import ChatMistralAI
-    mistral_model = model_name if ":" not in model_name else "mistral-small-latest"
-    return ChatMistralAI(model=mistral_model)
+
+def get_llm(model_name: str = "mistral:instruct") -> OllamaLLM:
+    try:
+        ollama.pull(model_name)
+    except Exception:
+        pass
+    return OllamaLLM(
+        model=model_name,
+        num_gpu=1 
+    )
 
 
 def formatar_resposta(texto: str) -> str:
@@ -148,20 +151,41 @@ def get_roles():
         voce acabou de receber um prato, e deve usar apenas o contexto fornecido para a tarefa,
         descreva brevemente como deveria ser o vinho ideal para esse prato,
         falando sobre o tipo de vinho, cor, aroma, corpo, acidez, etc,
-        seja sucinto e em poucas palavras
+        seja sucinto e em poucas palavras, tambem fale sua categoria, dentro de (carne vermelha, carne branca, frutos do mar, miúdos e vísceras, vegetarianos, risotos, frutas, etc)
         exemplo: 
-        "Vinho Branco, acididade leve e aromas frutados que harmonizam bem com o sabor cremoso do queijo"
-        "Vinho Verde, fresco e frutado, combina bem com a doçura e acidez da morango. 
-        "vinho branco leve, com aromas citrus ou frutados, de corpo médio, para que a saborosa carne do camarão se destaque."
+        "Vinho Branco, acididade leve e aromas frutados que harmonizam bem com o sabor cremoso do queijo, Tipo: Queijos"
+        "Vinho Verde, fresco e frutado, combina bem com a doçura e acidez da morango, Tipo: Frutas"
+        "vinho branco leve, com aromas citrus ou frutados, de corpo médio, para que a saborosa carne do camarão se destaque, Tipo: Frutos do mar"
+        "vinho tinto encorpado, aromas amadeirados, para acompanhar carne vermelha, Tipo: Carne Vermelha"
+        
+        lembrando que:
+        Carnes Vermelhas –  bovinos (boi, vaca, vitelo), suínos (porco, javali), ovinos (cordeiro, carneiro), caprinos (cabrito, bode), outros mamíferos (cavalo, búfalo, veado, cervo, alce, rena).
+        Carnes Brancas – aves domésticas (frango, peru, galinha caipira), aves aquáticas (pato, ganso, marreco), aves de caça (codorna, faisão, perdiz), 
+        Frutos do Mar – peixes de carne clara (tilápia, bacalhau, linguado, robalo, dourado), crustáceos e moluscos (camarão, lagosta, siri, caranguejo, polvo, lula), coelho.
+        Carnes Intermediárias – peixes de carne escura (atum, salmão, sardinha), pato e ganso (aves com carne mais escura e gordura semelhante à de carnes vermelhas), caça menor (pombo, marreco, faisão escuro).
+        Miúdos e Vísceras –  fígado, coração, rins, língua, baço, pulmão, bucho, tripas, estômago, medula óssea.
+        Massas – macarrão, risoto, lasanha, etc.
+        Frutas – morango, uva, maçã, etc.
+        Vegetarianos – vegetais, legumes, saladas, etc.
     """
     sommelier = """
         Você é um sommelier experiente.
         trabalha em um renomado restaurante 5 estrelas
         Sua função é recomendar vinhos assertivos ao cliente
         voce acabou de receber uma descrição de vinho, e deve usar o contexto para construir uma recomendação apropriada,
-        lembre que voce esta falando diretamente com o cliente, entao seja educado e profissional,
-        também explique o porque o vinho escolhido é o melhor para o cliente, e como ele orna com o prato
-        também forneça seu preço em reais
+        lembre que voce esta falando diretamente com o cliente, entao seja educado e profissional,  
+        explique o porque o vinho escolhido é o melhor para o cliente, e como ele orna com o prato
+        se receber mais de um vinho, forneça uma recomendação de ate 3 vinhos.
+        Responda em Markdown:
+        <div style="display: flex; align-items: flex-start; margin-bottom: 3px;">
+        <img src="url da imagem" 
+            width="200" height="250" style="margin-right: 15px;">
+        <div>
+            <span>Nome: </span><strong></strong> (R$ preço)<br>
+            explicação do por que escolheu esse vinho, e como ele orna com o prato
+        </div>
+        </div>
+        
     """
     return descritor, sommelier
     
