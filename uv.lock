@@ -873,6 +873,22 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain-mistralai"
+version = "0.2.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "httpx-sse" },
+    { name = "langchain-core" },
+    { name = "pydantic" },
+    { name = "tokenizers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/f5/7afd7dcd252e5abaaf3a13849733a32aaf0b5f2290dc62bd2c72afdc33e4/langchain_mistralai-0.2.11.tar.gz", hash = "sha256:0816bb9972c9e407d9eca567ad16095ec4f0f5bb9094890692ceb149aa72c71e", size = 21718 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/48/35/cf2e31b5af5b6798437bb7c92b13d0ed7c4bdde87034227b49be907fe272/langchain_mistralai-0.2.11-py3-none-any.whl", hash = "sha256:6940b551f8e63ca9163e8f5a156aab6814238f9b19302405b6af9d8703e7f762", size = 16560 },
+]
+
+[[package]]
 name = "langchain-ollama"
 version = "0.3.6"
 source = { registry = "https://pypi.org/simple" }
@@ -2584,6 +2600,7 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-huggingface" },
+    { name = "langchain-mistralai" },
     { name = "langchain-ollama" },
     { name = "ollama" },
     { name = "pdf2image" },
@@ -2605,6 +2622,7 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3.27" },
     { name = "langchain-community", specifier = ">=0.3.27" },
     { name = "langchain-huggingface", specifier = ">=0.3.1" },
+    { name = "langchain-mistralai", specifier = ">=0.2.3" },
     { name = "langchain-ollama", specifier = ">=0.3.6" },
     { name = "ollama", specifier = ">=0.5.3" },
     { name = "pdf2image", specifier = ">=1.17.0" },

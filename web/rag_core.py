@@ -11,8 +11,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 # LLM (Ollama)
-from langchain_ollama import OllamaLLM
-import ollama
+# Import adiado para dentro de get_llm para evitar ModuleNotFoundError no load
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -109,6 +108,7 @@ def get_retrievers(k_description: int = 3, k_matches: int = 3):
     retriever_description = db_description.as_retriever(search_kwargs={"k": k_description})
     retriever_matches = db_matches.as_retriever(search_kwargs={"k": k_matches})
     return retriever_description, retriever_matches
+
 
 
 def get_llm(model_name: str = "mistral:instruct") -> OllamaLLM:

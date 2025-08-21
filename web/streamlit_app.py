@@ -19,7 +19,8 @@ st.title("🍷 Descreva seu prato e descubra o melhor vinho")
 
 with st.sidebar:
     st.subheader("Configurações")
-    model_name = st.text_input("Modelo (Ollama)", value="mistral:instruct")
+    model_name = st.text_input("Modelo (Mistral API)", value="mistral-small-latest")
+    mistral_api_key = st.text_input("MISTRAL_API_KEY (obrigatório no Cloud)", value="", type="password")
     k_desc = st.number_input("Top-K contexto", 1, 10, 3)
     k_match = st.number_input("Top-K produtos", 1, 10, 3)
     debug = st.checkbox(
@@ -39,17 +40,18 @@ pergunta = st.text_input(
 executar = st.button("Executar")
 
 if executar and pergunta.strip():
+
     status = st.status("Executando...", expanded=debug)
     if debug:
         status.write("Carregando bases vetoriais...")
+
     retriever_desc, retriever_match = get_retrievers(
         k_description=int(k_desc), k_matches=int(k_match)
     )
     if debug:
         status.write("Carregando LLM...")
     llm = get_llm(model_name=model_name)
-    
-
+  
     # Etapa 1: descrição (índice description)
     query_1 = pergunta
     if debug: 
